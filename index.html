@@ -2,389 +2,57 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <title>Enrejado 4 nodos · k' 2×2, T y ensamble paso a paso</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/white.css" id="theme" />
-    <style>
-      :root{ --mx: clamp(12px, 1.8vw, 20px); --mxl: clamp(14px, 2.4vw, 26px); --big: clamp(18px,3vw,34px); }
-      .reveal{ font-size: var(--mx); }
-      .reveal h2,.reveal h3{ font-size: var(--big); }
-      .matrix{ border-collapse: collapse; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: var(--mx); }
-      .matrix th,.matrix td{ border: 1px solid #999; padding: .25rem .4rem; text-align: right; white-space: nowrap; }
-      .matrix th{ background:#f6f6f6; text-align:center; position: sticky; top: 0; }
-      .wrap{ display:flex; gap: clamp(8px,2vw,24px); align-items:flex-start; }
-      .panel{ max-height: 70vh; overflow:auto; }
-      .geom svg{ width: 100%; height: auto; }
-      .legend span{ display:inline-block; margin-right:12px; font-weight:700; }
-      .eq{ font-size: var(--mxl); }
-      .tight{ line-height:1.1; }
-      .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: clamp(8px,2vw,24px); align-items:start; }
-      .center{ text-align:center; }
-      .muted{ color:#666; }
-      /* Colores por barra (texto y matrices de aporte) */
-      .bar1{ color:#e53935; } .bar2{ color:#1e88e5; } .bar3{ color:#43a047; } .bar4{ color:#fb8c00; } .bar5{ color:#8e24aa; }
-      .bg-bar1 td{ color:#e53935; } .bg-bar2 td{ color:#1e88e5; } .bg-bar3 td{ color:#43a047; } .bg-bar4 td{ color:#fb8c00; } .bg-bar5 td{ color:#8e24aa; }
-      /* Dibujo: resaltar barra actual en negro para no coincidir con el color del texto */
-      .hl{ stroke:#222; stroke-width:6; }
-      .m{ stroke:#9aa0a6; stroke-width:4; }
-      .node{ fill:#000; }
-      .lab{ font-size: 18px; }
-      /* Matriz vacía (sin ceros) */
-      .empty td{ color: transparent; }
-      @media (orientation: landscape){ .reveal{ font-size: clamp(16px,2.2vh,22px);} }
-    </style>
+    <title>Elasticidad 3D — Sitio</title>
+    <meta name="description" content="Página simple publicada con GitHub Pages." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="reveal">
-      <div class="slides">
-        <!-- Portada -->
-        <section>
-          <h2>Enrejado 4 nodos: k' 2×2, transformación T y ensamble</h2>
-          <p>Coordenadas en cm. E = 2.1×10⁶ kg/cm². A = 10 cm². EA = 2.1×10⁷ kg.</p>
-          <p class="muted tight">Nodos: 1(0,0), 2(0,200), 3(200,200), 4(200,0). Barras: 1–4, 1–2, 4–2, 4–3, 2–3.</p>
-        </section>
-
-        <!-- Geometría y carga con apoyos bien visibles dentro del marco -->
-        <section>
-          <h3>Geometría, apoyos y carga</h3>
-          <div class="geom">
-            <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" aria-label="enrejado">
-              <!-- marco -->
-              <rect x="40" y="40" width="920" height="440" fill="none" stroke="#bbb" stroke-width="2"/>
-              <!-- barras -->
-              <line x1="80" y1="440" x2="920" y2="440" class="m"/>
-              <line x1="80" y1="440" x2="80" y2="80" class="m"/>
-              <line x1="920" y1="440" x2="80" y2="80" class="m"/>
-              <line x1="920" y1="440" x2="920" y2="80" class="m"/>
-              <line x1="80" y1="80" x2="920" y2="80" class="m"/>
-              <!-- nodos -->
-              <circle cx="80" cy="440" r="6" class="node"/><text x="92" y="452" class="lab">[1]</text>
-              <circle cx="80" cy="80" r="6" class="node"/><text x="92" y="92" class="lab">[2]</text>
-              <circle cx="920" cy="80" r="6" class="node"/><text x="932" y="92" class="lab">[3]</text>
-              <circle cx="920" cy="440" r="6" class="node"/><text x="932" y="452" class="lab">[4]</text>
-              <!-- apoyos dentro del marco -->
-              <polygon points="64,468 96,468 80,448" fill="none" stroke="#111" stroke-width="3"/>
-              <circle cx="920" cy="468" r="12" fill="none" stroke="#111" stroke-width="3"/>
-              <!-- fuerza 500 kg hacia +x en nodo 3 -->
-              <defs>
-                <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#e53935"/>
-                </marker>
-              </defs>
-              <line x1="920" y1="80" x2="980" y2="80" stroke="#e53935" stroke-width="4" marker-end="url(#arr)"/>
-              <text x="860" y="70" fill="#e53935" class="lab">500 kg</text>
-            </svg>
-          </div>
-          <p class="muted">Orden de GDL: [1x, 1y, 2x, 2y, 3x, 3y, 4x, 4y].</p>
-        </section>
-
-        <!-- Una página por barra: k' 2×2 (matriz), T con ángulo numérico, y Kxy = T^T k' T -->
-        <section>
-          <h3 class="bar1">Barra 1 (1–4)</h3>
-          <div class="grid">
-            <div>
-              <div class="eq">\(k' = \dfrac{EA}{L}\begin{bmatrix}1 & -1\\-1 & 1\end{bmatrix}\), \(\dfrac{EA}{L}=105{,}000.000\)</div>
-              <div class="eq">\(T = \begin{bmatrix}\cos 0^\circ & \sin 0^\circ & 0 & 0\\ 0 & 0 & \cos 0^\circ & \sin 0^\circ\end{bmatrix}\)</div>
-              <div class="eq">\(K_e^{xy}=T^{\!\mathsf T}k'\,T\)</div>
-            </div>
-            <div class="panel" id="kxy1"></div>
-          </div>
-        </section>
-        <section>
-          <h3 class="bar2">Barra 2 (1–2)</h3>
-          <div class="grid">
-            <div>
-              <div class="eq">\(k' = \dfrac{EA}{L}\begin{bmatrix}1 & -1\\-1 & 1\end{bmatrix}\), \(\dfrac{EA}{L}=105{,}000.000\)</div>
-              <div class="eq">\(T = \begin{bmatrix}\cos 90^\circ & \sin 90^\circ & 0 & 0\\ 0 & 0 & \cos 90^\circ & \sin 90^\circ\end{bmatrix}\)</div>
-              <div class="eq">\(K_e^{xy}=T^{\!\mathsf T}k'\,T\)</div>
-            </div>
-            <div class="panel" id="kxy2"></div>
-          </div>
-        </section>
-        <section>
-          <h3 class="bar3">Barra 3 (4–2)</h3>
-          <div class="grid">
-            <div>
-              <div class="eq">\(k' = \dfrac{EA}{L}\begin{bmatrix}1 & -1\\-1 & 1\end{bmatrix}\), \(\dfrac{EA}{L}=74{,}246.212\)</div>
-              <div class="eq">\(T = \begin{bmatrix}\cos 135^\circ & \sin 135^\circ & 0 & 0\\ 0 & 0 & \cos 135^\circ & \sin 135^\circ\end{bmatrix}\)</div>
-              <div class="eq">\(K_e^{xy}=T^{\!\mathsf T}k'\,T\)</div>
-            </div>
-            <div class="panel" id="kxy3"></div>
-          </div>
-        </section>
-        <section>
-          <h3 class="bar4">Barra 4 (4–3)</h3>
-          <div class="grid">
-            <div>
-              <div class="eq">\(k' = \dfrac{EA}{L}\begin{bmatrix}1 & -1\\-1 & 1\end{bmatrix}\), \(\dfrac{EA}{L}=105{,}000.000\)</div>
-              <div class="eq">\(T = \begin{bmatrix}\cos 90^\circ & \sin 90^\circ & 0 & 0\\ 0 & 0 & \cos 90^\circ & \sin 90^\circ\end{bmatrix}\)</div>
-              <div class="eq">\(K_e^{xy}=T^{\!\mathsf T}k'\,T\)</div>
-            </div>
-            <div class="panel" id="kxy4"></div>
-          </div>
-        </section>
-        <section>
-          <h3 class="bar5">Barra 5 (2–3)</h3>
-          <div class="grid">
-            <div>
-              <div class="eq">\(k' = \dfrac{EA}{L}\begin{bmatrix}1 & -1\\-1 & 1\end{bmatrix}\), \(\dfrac{EA}{L}=105{,}000.000\)</div>
-              <div class="eq">\(T = \begin{bmatrix}\cos 0^\circ & \sin 0^\circ & 0 & 0\\ 0 & 0 & \cos 0^\circ & \sin 0^\circ\end{bmatrix}\)</div>
-              <div class="eq">\(K_e^{xy}=T^{\!\mathsf T}k'\,T\)</div>
-            </div>
-            <div class="panel" id="kxy5"></div>
-          </div>
-        </section>
-
-        <!-- Ensamble: K^(0) vacío -->
-        <section>
-          <h3>Ensamble global K (8×8) — Estado inicial</h3>
-          <div class="wrap">
-            <div class="geom" style="flex:1">
-              <!-- dibujo sin cargas ni apoyos -->
-              <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-                <rect x="40" y="40" width="920" height="440" fill="none" stroke="#bbb" stroke-width="2"/>
-                <line x1="80" y1="440" x2="920" y2="440" class="m"/>
-                <line x1="80" y1="440" x2="80" y2="80" class="m"/>
-                <line x1="920" y1="440" x2="80" y2="80" class="m"/>
-                <line x1="920" y1="440" x2="920" y2="80" class="m"/>
-                <line x1="80" y1="80" x2="920" y2="80" class="m"/>
-                <circle cx="80" cy="440" r="6" class="node"/>
-                <circle cx="80" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="440" r="6" class="node"/>
-              </svg>
-            </div>
-            <div class="panel" style="flex:1">
-              <div class="eq center">\(K^{(0)}\) matriz vacía</div>
-              <div id="K0"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Ensamble por barra: 1..5 -->
-        <section>
-          <h3><span class="bar1">Aporte barra 1 (1–4)</span></h3>
-          <div class="wrap">
-            <div class="geom" style="flex:0.9">
-              <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-                <rect x="40" y="40" width="920" height="440" fill="none" stroke="#bbb" stroke-width="2"/>
-                <line x1="80" y1="440" x2="920" y2="440" class="hl"/>
-                <line x1="80" y1="440" x2="80" y2="80" class="m"/>
-                <line x1="920" y1="440" x2="80" y2="80" class="m"/>
-                <line x1="920" y1="440" x2="920" y2="80" class="m"/>
-                <line x1="80" y1="80" x2="920" y2="80" class="m"/>
-                <circle cx="80" cy="440" r="6" class="node"/>
-                <circle cx="80" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="440" r="6" class="node"/>
-              </svg>
-            </div>
-            <div class="panel" style="flex:1.1">
-              <div class="eq center">\(K^{(1)} = K^{(0)} + \color{#e53935}{\hat K_{1\!\text{–}4}}\)</div>
-              <div class="grid">
-                <div id="Kprev1"></div>
-                <div id="Khat1" class="bg-bar1"></div>
-              </div>
-              <div class="center" id="Kacc1"></div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h3><span class="bar2">Aporte barra 2 (1–2)</span></h3>
-          <div class="wrap">
-            <div class="geom" style="flex:0.9">
-              <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-                <rect x="40" y="40" width="920" height="440" fill="none" stroke="#bbb" stroke-width="2"/>
-                <line x1="80" y1="440" x2="80" y2="80" class="hl"/>
-                <line x1="80" y1="440" x2="920" y2="440" class="m"/>
-                <line x1="920" y1="440" x2="80" y2="80" class="m"/>
-                <line x1="920" y1="440" x2="920" y2="80" class="m"/>
-                <line x1="80" y1="80" x2="920" y2="80" class="m"/>
-                <circle cx="80" cy="440" r="6" class="node"/>
-                <circle cx="80" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="440" r="6" class="node"/>
-              </svg>
-            </div>
-            <div class="panel" style="flex:1.1">
-              <div class="eq center">\(K^{(2)} = K^{(1)} + \color{#1e88e5}{\hat K_{1\!\text{–}2}}\)</div>
-              <div class="grid">
-                <div id="Kprev2"></div>
-                <div id="Khat2" class="bg-bar2"></div>
-              </div>
-              <div class="center" id="Kacc2"></div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h3><span class="bar3">Aporte barra 3 (4–2)</span></h3>
-          <div class="wrap">
-            <div class="geom" style="flex:0.9">
-              <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-                <rect x="40" y="40" width="920" height="440" fill="none" stroke="#bbb" stroke-width="2"/>
-                <line x1="920" y1="440" x2="80" y2="80" class="hl"/>
-                <line x1="80" y1="440" x2="920" y2="440" class="m"/>
-                <line x1="80" y1="440" x2="80" y2="80" class="m"/>
-                <line x1="920" y1="440" x2="920" y2="80" class="m"/>
-                <line x1="80" y1="80" x2="920" y2="80" class="m"/>
-                <circle cx="80" cy="440" r="6" class="node"/>
-                <circle cx="80" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="440" r="6" class="node"/>
-              </svg>
-            </div>
-            <div class="panel" style="flex:1.1">
-              <div class="eq center">\(K^{(3)} = K^{(2)} + \color{#43a047}{\hat K_{4\!\text{–}2}}\)</div>
-              <div class="grid">
-                <div id="Kprev3"></div>
-                <div id="Khat3" class="bg-bar3"></div>
-              </div>
-              <div class="center" id="Kacc3"></div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h3><span class="bar4">Aporte barra 4 (4–3)</span></h3>
-          <div class="wrap">
-            <div class="geom" style="flex:0.9">
-              <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-                <rect x="40" y="40" width="920" height="440" fill="none" stroke="#bbb" stroke-width="2"/>
-                <line x1="920" y1="440" x2="920" y2="80" class="hl"/>
-                <line x1="80" y1="440" x2="920" y2="440" class="m"/>
-                <line x1="80" y1="440" x2="80" y2="80" class="m"/>
-                <line x1="920" y1="440" x2="80" y2="80" class="m"/>
-                <line x1="80" y1="80" x2="920" y2="80" class="m"/>
-                <circle cx="80" cy="440" r="6" class="node"/>
-                <circle cx="80" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="440" r="6" class="node"/>
-              </svg>
-            </div>
-            <div class="panel" style="flex:1.1">
-              <div class="eq center">\(K^{(4)} = K^{(3)} + \color{#fb8c00}{\hat K_{4\!\text{–}3}}\)</div>
-              <div class="grid">
-                <div id="Kprev4"></div>
-                <div id="Khat4" class="bg-bar4"></div>
-              </div>
-              <div class="center" id="Kacc4"></div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h3><span class="bar5">Aporte barra 5 (2–3)</span></h3>
-          <div class="wrap">
-            <div class="geom" style="flex:0.9">
-              <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-                <rect x="40" y="40" width="920" height="440" fill="none" stroke="#bbb" stroke-width="2"/>
-                <line x1="80" y1="80" x2="920" y2="80" class="hl"/>
-                <line x1="80" y1="440" x2="920" y2="440" class="m"/>
-                <line x1="80" y1="440" x2="80" y2="80" class="m"/>
-                <line x1="920" y1="440" x2="80" y2="80" class="m"/>
-                <line x1="920" y1="440" x2="920" y2="80" class="m"/>
-                <circle cx="80" cy="440" r="6" class="node"/>
-                <circle cx="80" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="80" r="6" class="node"/>
-                <circle cx="920" cy="440" r="6" class="node"/>
-              </svg>
-            </div>
-            <div class="panel" style="flex:1.1">
-              <div class="eq center">\(K^{(5)} = K^{(4)} + \color{#8e24aa}{\hat K_{2\!\text{–}3}}\)</div>
-              <div class="grid">
-                <div id="Kprev5"></div>
-                <div id="Khat5" class="bg-bar5"></div>
-              </div>
-              <div class="center" id="Kacc5"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Matriz global final, sin colores -->
-        <section>
-          <h3>Matriz global K final (8×8) — sin colores</h3>
-          <div id="Kfinal" class="panel"></div>
-        </section>
-
+    <header class="site-header">
+      <div class="container">
+        <h1>Elasticidad 3D</h1>
+        <p class="tagline">Resultados, notas y material del proyecto</p>
       </div>
-    </div>
+    </header>
 
-    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/math/math.js"></script>
-    <script>
-      const deck = new Reveal({ hash:true, slideNumber:true, width:1920, height:1080, margin:0.02, minScale:0.2, maxScale:2 });
-      deck.initialize({ plugins:[RevealMath] });
+    <main class="container">
+      <section class="card">
+        <h2>Bienvenido</h2>
+        <p>
+          Este es un sitio estático mínimo publicado con <strong>GitHub Pages</strong>.
+          Puedes editar este archivo en <code>docs/index.html</code> y subir cambios para
+          actualizar el sitio.
+        </p>
+        <p>
+          - Estilos: <code>docs/styles.css</code><br />
+          - Script: <code>docs/script.js</code><br />
+          - Recursos: <code>docs/assets/</code>
+        </p>
+        <p>
+          Si quieres usar un dominio propio, crea un archivo <code>CNAME</code> dentro de <code>docs/</code>
+          con tu dominio (por ejemplo: <code>mi-dominio.com</code>).
+        </p>
+      </section>
 
-      // === Utilidades ===
-      const lbl=["1x","1y","2x","2y","3x","3y","4x","4y"]; 
-      const EA=2.1e7;
-      const nodes={1:[0,0],2:[0,200],3:[200,200],4:[200,0]};
-      const bars=[[1,4],[1,2],[4,2],[4,3],[2,3]];
-      function Ltheta(i,j){ const [x1,y1]=nodes[i], [x2,y2]=nodes[j]; const dx=x2-x1, dy=y2-y1; const L=Math.hypot(dx,dy); const th=Math.atan2(dy,dx); return [L, th]; }
-      function Kbar8(i,j){
-        const [L,th]=Ltheta(i,j); const k=EA/L; const c=Math.cos(th), s=Math.sin(th);
-        // k' 2x2
-        const kp=[[k,-k],[-k,k]];
-        // T 2x4
-        const T=[[c,s,0,0],[0,0,c,s]];
-        // Ke4 = T^T k' T
-        const Ke4=Array.from({length:4},()=>Array(4).fill(0));
-        // temp = k' T  (2x4)
-        const temp=[ [0,0,0,0],[0,0,0,0] ];
-        for(let a=0;a<2;a++) for(let b=0;b<4;b++) temp[a][b]=kp[a][0]*T[0][b]+kp[a][1]*T[1][b];
-        for(let a=0;a<4;a++) for(let b=0;b<4;b++) Ke4[a][b]=T[0][a]*temp[0][b]+T[1][a]*temp[1][b];
-        // embed to 8x8
-        const map={1:[0,1],2:[2,3],3:[4,5],4:[6,7]};
-        const loc=[...map[i],...map[j]]; const K8=Array.from({length:8},()=>Array(8).fill(0));
-        for(let a=0;a<4;a++) for(let b=0;b<4;b++) K8[loc[a]][loc[b]] += Ke4[a][b];
-        return K8;
-      }
-      function r3(x){ return Math.round(x*1000)/1000; }
-      function table(M){
-        const t=document.createElement('table'); t.className='matrix'; const trh=document.createElement('tr'); trh.innerHTML='<th></th>'+lbl.map(s=>`<th>${s}</th>`).join(''); t.appendChild(trh);
-        for(let i=0;i<8;i++){
-          const tr=document.createElement('tr'); tr.innerHTML=`<th>${lbl[i]}</th>`+Array.from({length:8},(_,j)=>`<td>${(M[i][j]??"")}</td>`).join(''); t.appendChild(tr); }
-        return t;
-      }
-      function tableEmpty(){
-        const M=Array.from({length:8},()=>Array(8).fill("")); const t=table(M); t.classList.add('empty'); return t; }
+      <section class="card">
+        <h2>Prueba rápida</h2>
+        <button id="action-btn">Haz clic</button>
+        <p id="action-result" class="muted"></p>
+      </section>
+    </main>
 
-      // === K_xy por barra (mostrar 4x4 numérica con 3 decimales) ===
-      function kxyForBar(i){ const [ni,nj]=bars[i-1]; const K8=Kbar8(ni,nj);
-        const map={1:[0,1],2:[2,3],3:[4,5],4:[6,7]}; const loc=[...map[ni],...map[nj]]; const Ke4=Array.from({length:4},()=>Array(4).fill(0));
-        for(let a=0;a<4;a++) for(let b=0;b<4;b++) Ke4[a][b]=r3(K8[loc[a]][loc[b]]);
-        const t=document.createElement('table'); t.className='matrix';
-        for(let a=0;a<4;a++){ const tr=document.createElement('tr'); for(let b=0;b<4;b++){ const td=document.createElement('td'); td.textContent=Ke4[a][b].toFixed(3); tr.appendChild(td);} t.appendChild(tr);} return t; }
+    <footer class="site-footer">
+      <div class="container">
+        <small>
+          Última actualización: <span id="last-updated"></span>
+        </small>
+      </div>
+    </footer>
 
-      // Colocar K_xy de cada barra
-      document.getElementById('kxy1').appendChild(kxyForBar(1));
-      document.getElementById('kxy2').appendChild(kxyForBar(2));
-      document.getElementById('kxy3').appendChild(kxyForBar(3));
-      document.getElementById('kxy4').appendChild(kxyForBar(4));
-      document.getElementById('kxy5').appendChild(kxyForBar(5));
-
-      // === Ensamble acumulativo ===
-      const Khat = bars.map(([i,j])=>Kbar8(i,j).map(row=>row.map(r3)));
-      const Kacc=[Array.from({length:8},()=>Array(8).fill(0))];
-      for(let k=0;k<bars.length;k++){
-        const next=Array.from({length:8},()=>Array(8).fill(0));
-        for(let i=0;i<8;i++) for(let j=0;j<8;j++) next[i][j]=r3(Kacc[k][i][j]+Khat[k][i][j]);
-        Kacc.push(next);
-      }
-      // K(0)
-      document.getElementById('K0').appendChild(tableEmpty());
-      // Paso 1..5: mostrar K^(n-1), + K^hat_bar, y = K^(n)
-      for(let step=1; step<=5; step++){
-        document.getElementById('Kprev'+step).appendChild(table(Kacc[step-1]));
-        const tHat=table(Khat[step-1]); tHat.classList.add(['bg-bar1','bg-bar2','bg-bar3','bg-bar4','bg-bar5'][step-1]);
-        document.getElementById('Khat'+step).appendChild(tHat);
-        document.getElementById('Kacc'+step).appendChild(table(Kacc[step]));
-      }
-      // Final
-      document.getElementById('Kfinal').appendChild(table(Kacc[5]));
-    </script>
+    <script src="./script.js"></script>
   </body>
-</html>
+  </html>
+
