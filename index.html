@@ -2,57 +2,233 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Elasticidad 3D — Sitio</title>
-    <meta name="description" content="Página simple publicada con GitHub Pages." />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css" />
+    <title>Enrejado 4 nodos · Móvil vertical · k' 2×2, T y ensamble</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/white.css" id="theme" />
+    <style>
+      :root{
+        --fs-base: clamp(18px, 4.2vw, 32px);
+        --fs-eq: clamp(20px, 4.8vw, 36px);
+        --fs-h: clamp(24px, 6vw, 44px);
+      }
+      html,body{ height:100%; margin:0; }
+      .reveal{ font-size: var(--fs-base); }
+      .reveal h2,.reveal h3{ font-size: var(--fs-h); }
+      .eq{ font-size: var(--fs-eq); }
+      .matrix{ border-collapse: collapse; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: var(--fs-base); }
+      .matrix th,.matrix td{ border:1px solid #999; padding:.3rem .5rem; text-align:right; white-space:nowrap; }
+      .matrix th{ background:#f5f5f5; position:sticky; top:0; text-align:center; }
+      .panel{ max-height: 70vh; overflow:auto; }
+      .geom svg{ width:100%; height:auto; }
+      .muted{ color:#666; }
+      /* Colores por barra */
+      .bar1{ color:#e53935; } .bar2{ color:#1e88e5; } .bar3{ color:#43a047; } .bar4{ color:#fb8c00; } .bar5{ color:#8e24aa; }
+      /* Dibujo de barras */
+      .hl{ stroke:#222; stroke-width:8; }
+      .m{ stroke:#9aa0a6; stroke-width:5; }
+      .node{ fill:#000; }
+      .lab{ font-size: clamp(16px,3.8vw,28px); }
+      @media (orientation: landscape){
+        :root{ --fs-base: clamp(18px,3.2vh,28px); --fs-eq: clamp(20px,3.8vh,32px); --fs-h: clamp(24px,4.4vh,40px); }
+      }
+    </style>
   </head>
   <body>
-    <header class="site-header">
-      <div class="container">
-        <h1>Elasticidad 3D</h1>
-        <p class="tagline">Resultados, notas y material del proyecto</p>
+    <div class="reveal">
+      <div class="slides">
+        <!-- Portada -->
+        <section>
+          <h2>Enrejado 4 nodos: k' 2×2, T y ensamble</h2>
+          <p>E = 2.1×10⁶ kg/cm², A = 10 cm², EA = 2.1×10⁷ kg.</p>
+          <p class="muted">Nodos: 1(0,0), 2(0,200), 3(200,200), 4(200,0). Barras: 1–4, 1–2, 4–2, 4–3, 2–3.</p>
+        </section>
+
+        <!-- Geometría con apoyos y carga completos dentro del marco -->
+        <section>
+          <h3>Geometría, apoyos y carga</h3>
+          <div class="geom">
+            <svg viewBox="0 0 1000 1080" xmlns="http://www.w3.org/2000/svg" aria-label="enrejado">
+              <!-- marco -->
+              <rect x="40" y="140" width="920" height="800" fill="none" stroke="#bbb" stroke-width="3"/>
+              <!-- barras -->
+              <line x1="80" y1="900" x2="920" y2="900" class="m"/>
+              <line x1="80" y1="900" x2="80" y2="180" class="m"/>
+              <line x1="920" y1="900" x2="80" y2="180" class="m"/>
+              <line x1="920" y1="900" x2="920" y2="180" class="m"/>
+              <line x1="80" y1="180" x2="920" y2="180" class="m"/>
+              <!-- nodos -->
+              <circle cx="80" cy="900" r="8" class="node"/><text x="100" y="920" class="lab">[1]</text>
+              <circle cx="80" cy="180" r="8" class="node"/><text x="100" y="200" class="lab">[2]</text>
+              <circle cx="920" cy="180" r="8" class="node"/><text x="940" y="200" class="lab">[3]</text>
+              <circle cx="920" cy="900" r="8" class="node"/><text x="940" y="920" class="lab">[4]</text>
+              <!-- apoyos dentro del marco -->
+              <polygon points="62,952 98,952 80,920" fill="none" stroke="#111" stroke-width="4"/>
+              <circle cx="920" cy="952" r="16" fill="none" stroke="#111" stroke-width="4"/>
+              <!-- fuerza 500 kg hacia +x en nodo 3 -->
+              <defs>
+                <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#e53935"/>
+                </marker>
+              </defs>
+              <line x1="920" y1="180" x2="980" y2="180" stroke="#e53935" stroke-width="6" marker-end="url(#arr)"/>
+              <text x="820" y="160" fill="#e53935" class="lab">500 kg</text>
+            </svg>
+          </div>
+          <p class="muted">GDL: [1x,1y,2x,2y,3x,3y,4x,4y]</p>
+        </section>
+
+        <!-- Una página por barra: k' matriz 2x2, T con ángulo explícito, y Kxy = T^T k' T (4x4 numérica) -->
+        <section>
+          <h3 class="bar1">Barra 1 (1–4)</h3>
+          <div class="eq">\(k' = \dfrac{EA}{L}\begin{bmatrix}1 & -1\\-1 & 1\end{bmatrix}\), \(\dfrac{EA}{L}=105{,}000.000\)</div>
+          <div class="eq">\(T = \begin{bmatrix}\cos 0^\circ & \sin 0^\circ & 0 & 0\\ 0 & 0 & \cos 0^\circ & \sin 0^\circ\end{bmatrix}\)</div>
+          <div class="eq">\(K_e^{xy}=T^{\!\mathsf T}k'\,T\)</div>
+          <div class="panel" id="kxy1"></div>
+        </section>
+        <section>
+          <h3 class="bar2">Barra 2 (1–2)</h3>
+          <div class="eq">\(k' = \dfrac{EA}{L}\begin{bmatrix}1 & -1\\-1 & 1\end{bmatrix}\), \(\dfrac{EA}{L}=105{,}000.000\)</div>
+          <div class="eq">\(T = \begin{bmatrix}\cos 90^\circ & \sin 90^\circ & 0 & 0\\ 0 & 0 & \cos 90^\circ & \sin 90^\circ\end{bmatrix}\)</div>
+          <div class="eq">\(K_e^{xy}=T^{\!\mathsf T}k'\,T\)</div>
+          <div class="panel" id="kxy2"></div>
+        </section>
+        <section>
+          <h3 class="bar3">Barra 3 (4–2)</h3>
+          <div class="eq">\(k' = \dfrac{EA}{L}\begin{bmatrix}1 & -1\\-1 & 1\end{bmatrix}\), \(\dfrac{EA}{L}=74{,}246.212\)</div>
+          <div class="eq">\(T = \begin{bmatrix}\cos 135^\circ & \sin 135^\circ & 0 & 0\\ 0 & 0 & \cos 135^\circ & \sin 135^\circ\end{bmatrix}\)</div>
+          <div class="eq">\(K_e^{xy}=T^{\!\mathsf T}k'\,T\)</div>
+          <div class="panel" id="kxy3"></div>
+        </section>
+        <section>
+          <h3 class="bar4">Barra 4 (4–3)</h3>
+          <div class="eq">\(k' = \dfrac{EA}{L}\begin{bmatrix}1 & -1\\-1 & 1\end{bmatrix}\), \(\dfrac{EA}{L}=105{,}000.000\)</div>
+          <div class="eq">\(T = \begin{bmatrix}\cos 90^\circ & \sin 90^\circ & 0 & 0\\ 0 & 0 & \cos 90^\circ & \sin 90^\circ\end{bmatrix}\)</div>
+          <div class="eq">\(K_e^{xy}=T^{\!\mathsf T}k'\,T\)</div>
+          <div class="panel" id="kxy4"></div>
+        </section>
+        <section>
+          <h3 class="bar5">Barra 5 (2–3)</h3>
+          <div class="eq">\(k' = \dfrac{EA}{L}\begin{bmatrix}1 & -1\\-1 & 1\end{bmatrix}\), \(\dfrac{EA}{L}=105{,}000.000\)</div>
+          <div class="eq">\(T = \begin{bmatrix}\cos 0^\circ & \sin 0^\circ & 0 & 0\\ 0 & 0 & \cos 0^\circ & \sin 0^\circ\end{bmatrix}\)</div>
+          <div class="eq">\(K_e^{xy}=T^{\!\mathsf T}k'\,T\)</div>
+          <div class="panel" id="kxy5"></div>
+        </section>
+
+        <!-- Ensamble: matriz única con sumas coloreadas por paso -->
+        <section>
+          <h3>Ensamble K (8×8) — Paso 1</h3>
+          <div id="Ksum1" class="panel"></div>
+        </section>
+        <section>
+          <h3>Ensamble K (8×8) — Paso 2</h3>
+          <div id="Ksum2" class="panel"></div>
+        </section>
+        <section>
+          <h3>Ensamble K (8×8) — Paso 3</h3>
+          <div id="Ksum3" class="panel"></div>
+        </section>
+        <section>
+          <h3>Ensamble K (8×8) — Paso 4</h3>
+          <div id="Ksum4" class="panel"></div>
+        </section>
+        <section>
+          <h3>Ensamble K (8×8) — Paso 5</h3>
+          <div id="Ksum5" class="panel"></div>
+        </section>
+
+        <!-- Matriz global final sin colores -->
+        <section>
+          <h3>Matriz global K final (8×8)</h3>
+          <div id="Kfinal" class="panel"></div>
+        </section>
+
       </div>
-    </header>
+    </div>
 
-    <main class="container">
-      <section class="card">
-        <h2>Bienvenido</h2>
-        <p>
-          Este es un sitio estático mínimo publicado con <strong>GitHub Pages</strong>.
-          Puedes editar este archivo en <code>docs/index.html</code> y subir cambios para
-          actualizar el sitio.
-        </p>
-        <p>
-          - Estilos: <code>docs/styles.css</code><br />
-          - Script: <code>docs/script.js</code><br />
-          - Recursos: <code>docs/assets/</code>
-        </p>
-        <p>
-          Si quieres usar un dominio propio, crea un archivo <code>CNAME</code> dentro de <code>docs/</code>
-          con tu dominio (por ejemplo: <code>mi-dominio.com</code>).
-        </p>
-      </section>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/math/math.js"></script>
+    <script>
+      const deck = new Reveal({
+        hash:true, slideNumber:true,
+        width:1080, height:1920, margin:0.01, minScale:0.2, maxScale:2,
+        controls:false, progress:false, touch:true
+      });
+      deck.initialize({ plugins:[RevealMath] });
 
-      <section class="card">
-        <h2>Prueba rápida</h2>
-        <button id="action-btn">Haz clic</button>
-        <p id="action-result" class="muted"></p>
-      </section>
-    </main>
+      // ===== Datos =====
+      const EA=2.1e7; // kg
+      const nodes={1:[0,0],2:[0,200],3:[200,200],4:[200,0]};
+      const bars=[[1,4],[1,2],[4,2],[4,3],[2,3]]; // orden
+      const lbl=["1x","1y","2x","2y","3x","3y","4x","4y"]; 
 
-    <footer class="site-footer">
-      <div class="container">
-        <small>
-          Última actualización: <span id="last-updated"></span>
-        </small>
-      </div>
-    </footer>
+      function Ltheta(i,j){ const [x1,y1]=nodes[i], [x2,y2]=nodes[j]; const dx=x2-x1, dy=y2-y1; const L=Math.hypot(dx,dy); const th=Math.atan2(dy,dx); return [L, th]; }
+      function r3(x){ return Math.round(x*1000)/1000; }
 
-    <script src="./script.js"></script>
+      function Kbar8(i,j){
+        const [L,th]=Ltheta(i,j); const k=EA/L; const c=Math.cos(th), s=Math.sin(th);
+        const kp=[[k,-k],[-k,k]]; // k' 2x2
+        const T=[[c,s,0,0],[0,0,c,s]]; // 2x4
+        // Ke4 = T^T k' T
+        const Ke4=Array.from({length:4},()=>Array(4).fill(0));
+        const tmp=[[0,0,0,0],[0,0,0,0]];
+        for(let a=0;a<2;a++) for(let b=0;b<4;b++) tmp[a][b]=kp[a][0]*T[0][b]+kp[a][1]*T[1][b];
+        for(let a=0;a<4;a++) for(let b=0;b<4;b++) Ke4[a][b]=T[0][a]*tmp[0][b]+T[1][a]*tmp[1][b];
+        // embed 4x4 -> 8x8
+        const map={1:[0,1],2:[2,3],3:[4,5],4:[6,7]}; const loc=[...map[i],...map[j]];
+        const K8=Array.from({length:8},()=>Array(8).fill(0));
+        for(let a=0;a<4;a++) for(let b=0;b<4;b++) K8[loc[a]][loc[b]]+=Ke4[a][b];
+        return K8.map(row=>row.map(r3));
+      }
+
+      // K_xy 4x4 por barra
+      function block4x4(K8,i,j){
+        const map={1:[0,1],2:[2,3],3:[4,5],4:[6,7]}; const loc=[...map[i],...map[j]];
+        const B=Array.from({length:4},()=>Array(4).fill(0));
+        for(let a=0;a<4;a++) for(let b=0;b<4;b++) B[a][b]=K8[loc[a]][loc[b]];
+        return B;
+      }
+      function table4x4(M){
+        const t=document.createElement('table'); t.className='matrix';
+        for(let i=0;i<4;i++){ const tr=document.createElement('tr'); for(let j=0;j<4;j++){ const td=document.createElement('td'); td.textContent=Number(M[i][j]).toFixed(3); tr.appendChild(td);} t.appendChild(tr);} return t;
+      }
+
+      // Colocar K_e^{xy} por barra
+      const Kb = bars.map(([i,j])=>Kbar8(i,j));
+      document.getElementById('kxy1').appendChild(table4x4(block4x4(Kb[0],...bars[0])));
+      document.getElementById('kxy2').appendChild(table4x4(block4x4(Kb[1],...bars[1])));
+      document.getElementById('kxy3').appendChild(table4x4(block4x4(Kb[2],...bars[2])));
+      document.getElementById('kxy4').appendChild(table4x4(block4x4(Kb[3],...bars[3])));
+      document.getElementById('kxy5').appendChild(table4x4(block4x4(Kb[4],...bars[4])));
+
+      // ===== Ensamble: matriz única con sumas coloreadas =====
+      function tableSum(step){
+        const t=document.createElement('table'); t.className='matrix';
+        const trh=document.createElement('tr'); trh.innerHTML='<th></th>'+lbl.map(s=>`<th>${s}</th>`).join(''); t.appendChild(trh);
+        for(let i=0;i<8;i++){
+          const tr=document.createElement('tr');
+          tr.innerHTML=`<th>${lbl[i]}</th>`+Array.from({length:8},(_,j)=>{
+            const parts=[]; for(let k=0;k<step;k++){ const v=Kb[k][i][j].toFixed(3); parts.push(`<span class="bar${k+1}">${v}</span>`); }
+            return `<td>${parts.join(' + ')}</td>`;
+          }).join('');
+          t.appendChild(tr);
+        }
+        return t;
+      }
+      for(let s=1;s<=5;s++) document.getElementById('Ksum'+s).appendChild(tableSum(s));
+
+      // ===== Matriz final numérica sin colores =====
+      function table(M){
+        const t=document.createElement('table'); t.className='matrix';
+        const trh=document.createElement('tr'); trh.innerHTML='<th></th>'+lbl.map(s=>`<th>${s}</th>`).join(''); t.appendChild(trh);
+        for(let i=0;i<8;i++){
+          const tr=document.createElement('tr'); tr.innerHTML=`<th>${lbl[i]}</th>`+Array.from({length:8},(_,j)=>`<td>${M[i][j].toFixed(3)}</td>`).join(''); t.appendChild(tr);
+        }
+        return t;
+      }
+      const Kfinal = Array.from({length:8},()=>Array(8).fill(0));
+      for(let k=0;k<5;k++) for(let i=0;i<8;i++) for(let j=0;j<8;j++) Kfinal[i][j]=r3(Kfinal[i][j]+Kb[k][i][j]);
+      document.getElementById('Kfinal').appendChild(table(Kfinal));
+    </script>
   </body>
-  </html>
-
+</html>
